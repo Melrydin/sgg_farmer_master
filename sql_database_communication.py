@@ -15,7 +15,7 @@ from selenium.webdriver.common.keys import Keys
 
 # Loop to go through the universe and fill the database (universe Table)
 def uni_loop(driver):
-    con = sqlite3.connect('uni_list_21_12_2021.db')
+    con = sqlite3.connect('uni_list.db')
     uni = con.cursor()
     for galaxy in range(73,101):
         for system in range(1,501):
@@ -140,7 +140,7 @@ def farm_planet_sql(galaxy):
 
 
 def update_status_in_sql(name, status):
-    con = sqlite3.connect('uni_list_21_12_2021.db')
+    con = sqlite3.connect('uni_list.db')
     uni = con.cursor()
     uni.execute(''' UPDATE user SET status = ? WHERE user_name=?''', (status,name,))
     con.commit()
@@ -150,7 +150,7 @@ def update_status_in_sql(name, status):
 def creat_farm_list(score, planet):
     if type(score) == str:
         score = int(score.replace("k","000"))
-    con = sqlite3.connect('uni_list_21_12_2021.db')
+    con = sqlite3.connect('uni_list.db')
     uni = con.cursor()
     today = date.today()
     farm_liste = uni.execute(''' SELECT u.galaxy, u.system, u.planet, u.user_name, u.farm_planet, u.farm_intervall
@@ -171,7 +171,7 @@ def creat_farm_list(score, planet):
 
 
 def last_and_next_farm(galaxy,system,planet,intervall):
-    con = sqlite3.connect('uni_list_21_12_2021.db')
+    con = sqlite3.connect('uni_list.db')
     uni = con.cursor()
     today = date.today()
     next_farm = today + timedelta(days=intervall)
@@ -182,7 +182,7 @@ def last_and_next_farm(galaxy,system,planet,intervall):
 
 
 def update_intervall(galaxy,system,planet,intervall):
-    con = sqlite3.connect('uni_list_21_12_2021.db')
+    con = sqlite3.connect('uni_list.db')
     uni = con.cursor()
     intervall = intervall + 1
     next_farm = date.today() + timedelta(days=intervall)
@@ -192,7 +192,7 @@ def update_intervall(galaxy,system,planet,intervall):
     con.close()
 
 def not_ships(galaxy,system,planet,spio):
-    con = sqlite3.connect('uni_list_21_12_2021.db')
+    con = sqlite3.connect('uni_list.db')
     uni = con.cursor()
     planet_exists_in_sql = uni.execute('''SELECT galaxy, system, planet FROM not_ships
                                        WHERE galaxy=? AND system=? AND planet=?''', (galaxy, system, planet,))
@@ -214,7 +214,7 @@ def not_ships(galaxy,system,planet,spio):
 
 
 def farm_to_day():
-    con = sqlite3.connect('uni_list_21_12_2021.db')
+    con = sqlite3.connect('uni_list.db')
     uni = con.cursor()
     today = date.today()
     current_farm_planet = uni.execute(''' SELECT farm.planet_id
@@ -228,7 +228,7 @@ def farm_to_day():
 
 
 def update_farm(planet_id):
-    con = sqlite3.connect('uni_list_21_12_2021.db')
+    con = sqlite3.connect('uni_list.db')
     uni = con.cursor()
     today = date.today()
     uni.execute('''UPDATE farm SET last_farm = ?
@@ -239,7 +239,7 @@ def update_farm(planet_id):
 
 # Creation of the "Uni_list" database
 def create_uni_list_db():
-    con = sqlite3.connect('uni_list_21_12_2021.db')
+    con = sqlite3.connect('uni_list.db')
     uni = con.cursor()
 
 
