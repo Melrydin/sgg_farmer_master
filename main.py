@@ -6,32 +6,29 @@ Created on Fri Aug 27 22:21:22 2021
 """
 
 from selenium import webdriver
-#from selenium.webdriver.opera.options import Options
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver import ActionChains
 from selenium.webdriver.remote.errorhandler import NoSuchElementException
 import time
 from base64 import b64decode
-import os
 
 
 # Import functions for database communication
-from sql_database_communication import uni_loop, update_status_in_sql, creat_farm_list, last_and_next_farm, update_intervall, not_ships, farm_to_day, update_farm
-
+from sql_database_communication import *
 
 
 # Navigat to Website and Login
-def start_season():
+def start_season(password, username):
     driver.get("https://spacegate-galaxys.com")
     # Search for the login field
     login = driver.find_element_by_name('loginname')
     # Enter login name
-    login.send_keys("<YOUR USERNAME>")
+    login.send_keys(username)
     # Search for the password field
     pw = driver.find_element_by_name('password')
     # Enter password
-    pw.send_keys(b64decode("<YOUR PASSWORD>").decode("utf-8"))
+    pw.send_keys(b64decode(password).decode("utf-8"))
     # Search for uni Dropdown Menu
     uni = Select(driver.find_element_by_id('uni'))
     # Select Universe
@@ -395,21 +392,9 @@ def max_fleet():
 
 
 def auto_farm(score):
-    dic = {"5": "149987",
-           "10": "150070",
-           "15": "149985",
-           "20": "150069",
-           "24": "149984",
-           "30": "150069",
-           "35": "149986",
-           "45": "149988",
-           "55": "149989",
-           "65": "149990",
-           "75": "149991",
-           "85": "149992",
-           "95": "149993"}
+    dic = myPlanets()
     current_farm = farm_to_day()
-    liste = creat_farm_list(score, current_farm)
+    liste = creat_farm_list(score, current_farm,"<INGAME NAME>")
     print(len(liste),time.strftime("%d.%m.%Y %H:%M:%S"))
     #auto_build(0,1)
     counter = 0
@@ -471,11 +456,5 @@ def auto_build(number, manuell):
         print(time.strftime("%d.%m.%Y %H:%M:%S"))
 
 
-#if __name__ == "__init__":
-    # Open Browser    
-    #options = Options()
-    #currentBrowser = os.listdir("C:\Program Files\Opera GX")[0]
-    #options.binary_location=r"C:\Program Files\Opera GX\\" + currentBrowser + "\opera.exe"
-    #driver = webdriver.Opera(options=options, executable_path=r"operadriver_win64/operadriver.exe")
 driver = webdriver.Edge(executable_path=r"edgedriver_win32\msedgedriver.exe")
-start_season()
+start_season("<YOUR PASSWORD IN B64CODE>","<USERNAME>")

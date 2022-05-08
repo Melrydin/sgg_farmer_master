@@ -147,7 +147,7 @@ def update_status_in_sql(name, status):
     con.close()
 
 
-def creat_farm_list(score, planet):
+def creat_farm_list(score, planet, username):
     if type(score) == str:
         score = int(score.replace("k","000"))
     con = sqlite3.connect('uni_list.db')
@@ -159,12 +159,12 @@ def creat_farm_list(score, planet):
                              WHERE us.score <= ?
                              AND (u.next_farm <= ? OR u.next_farm IS NULL)
                              AND u.farm_planet = ?
-                             AND NOT u.user_name = "Panoptos_1"
+                             AND NOT u.user_name = "?"
                              AND (us.allianz = "Ist bei keiner Allianz Mitglied" or us.allianz IN (
                                  SELECT al.allianz_name
                                  FROM allianz AS al
                                  WHERE al.allianz_score <= ?))
-                             AND us.status IS NULL ''', (score,today,planet,score,))
+                             AND us.status IS NULL ''', (score,today,planet,username,score,))
     farm_liste = farm_liste.fetchall()
     con.close()
     return farm_liste
@@ -190,6 +190,7 @@ def update_intervall(galaxy,system,planet,intervall):
                 WHERE u.galaxy = ? AND u.system = ? AND u.planet = ?''', (intervall, next_farm, galaxy, system, planet,))
     con.commit()
     con.close()
+
 
 def not_ships(galaxy,system,planet,spio):
     con = sqlite3.connect('uni_list.db')
@@ -237,11 +238,23 @@ def update_farm(planet_id):
     con.close()
 
 
+def myPlanets():
+    con = sqlite3.connect('uni_list.db')
+    uni = con.cursor()
+    my_planets = uni.execute('''SELECT farm.galaxy, farm.planet_id
+                                FROM farm''')
+    my_planets = my_planets.fetchall()
+    con.close()
+    dict_from_list = {}
+    for planet in my_planets:
+        dict_from_list[planet[0]] = planet[1]
+    return dict_from_list
+
+
 # Creation of the "Uni_list" database
 def create_uni_list_db():
     con = sqlite3.connect('uni_list.db')
     uni = con.cursor()
-
 
     uni.execute('''CREATE TABLE universe
                 (nr INTEGER PRIMARY KEY AUTOINCREMENT,
