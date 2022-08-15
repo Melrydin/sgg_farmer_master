@@ -4,13 +4,17 @@ Created on Fri Aug 27 22:21:22 2021
 
 @author: Clemens
 """
+# cSpell:disable
 
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver import ActionChains
 from selenium.webdriver.remote.errorhandler import NoSuchElementException
+from selenium.webdriver.common.by import By
+from webdriver_manager.firefox import GeckoDriverManager
 import time
+import os
 from base64 import b64decode
 
 
@@ -18,23 +22,24 @@ from base64 import b64decode
 from sql_database_communication import *
 
 
+
 # Navigat to Website and Login
 def start_season(password, username):
     driver.get("https://spacegate-galaxys.com")
     # Search for the login field
-    login = driver.find_element_by_name('loginname')
+    login = driver.find_element(By.NAME, "loginname")
     # Enter login name
     login.send_keys(username)
     # Search for the password field
-    pw = driver.find_element_by_name('password')
+    pw = driver.find_element(By.NAME, "password")
     # Enter password
     pw.send_keys(b64decode(password).decode("utf-8"))
     # Search for uni Dropdown Menu
-    uni = Select(driver.find_element_by_id('uni'))
+    uni = Select(driver.find_element(By.ID,"uni"))
     # Select Universe
     uni.select_by_value('1')
     # Search the login Button
-    login_button = driver.find_element_by_id('login_href')
+    login_button = driver.find_element(By.ID, "login_href")
     # Sleep 1 second
     time.sleep(1)
     # Enter Login
@@ -44,7 +49,7 @@ def start_season(password, username):
 # Shwitch planet
 def shwitch_planet(number):
     # Search planet ID on website
-    planet = Select(driver.find_element_by_id('planetid'))
+    planet = Select(driver.find_element(By.NAME, "planetid"))
     # Send a Value to switch the planet
     planet.select_by_value(number)
 
@@ -99,20 +104,20 @@ def shipment(of, to, iron, naquada, deuterium):
     # Switch to the planet from sending resources
     shwitch_planet(farm_planet(of)[0])
     # Select the Planet box
-    own = Select(driver.find_element_by_name('own_planets'))
+    own = Select(driver.find_element(By.NAME, "own_planets"))
     # Select the planet from the drop-down menu where resources should be sent
     own.select_by_value(farm_planet(to)[1])
     # Search the field for the big vans
-    big = driver.find_element_by_id('anzahl_25')
+    big = driver.find_element(By.ID, "anzahl_25")
     # Calculate the number of big vans and write them down
     big.send_keys(big_trans(iron + naquada + deuterium))
     # Search the field for the assignment
-    order = Select(driver.find_element_by_id('auftrag'))
+    order = Select(driver.find_element(By.ID, "auftrag"))
     # Select the right order(Transport)
     order.select_by_value('transport')
     for res in ['eisen', 'naquada', 'deuterium']:
         # Find the field for the resources
-        reso = driver.find_element_by_id(res)
+        reso = driver.find_element(By.ID, res)
         # Clear the field
         reso.send_keys(Keys.BACKSPACE)
         # Paste the separate resource quantities into the resource field
@@ -123,13 +128,13 @@ def shipment(of, to, iron, naquada, deuterium):
         else:
             reso.send_keys(int(1000000000 * deuterium))
     # Search the confirmed fild
-    send = driver.find_element_by_id('send')
+    send = driver.find_element(By.ID, "send")
     # Confirmed the shipment
     send.click()
 
 
 def where():
-    legend = driver.find_elements_by_class_name('fieldset_main_legend')
+    legend = driver.find_elements(By.CLASS_NAME, "fieldset_main_legend")
     liste = []
     for i in range(len(legend)):
         liste.append(legend[i].text)
@@ -145,22 +150,23 @@ def where_to(name, number):
 # Build ships
 def hangar(ship, number):
     where_to('Flottenliste', 4)
-    name = driver.find_element_by_name(str(ship))
+    name = driver.find_element(By.NAME, str(ship))
     name.send_keys(Keys.RIGHT ,Keys.BACKSPACE, number)
+    name.send_keys(Keys.ENTER)
 
 
 def defensive():
     where_to('Defensivliste', 5)
     try:
-        construction_orders = driver.find_elements_by_class_name("see_normal")[-2].text
+        construction_orders = driver.find_elements(By.CLASS_NAME, "see_normal")[-2].text
         construction_orders = construction_orders.split(' ')
         if construction_orders[2] not in "1999999999":
             for construction in range(2):
-                construction_orders = driver.find_elements_by_class_name("see_normal")
-                driver.find_elements_by_link_text("abbrechen")[len(construction_orders)-2].click()
+                construction_orders = driver.find_elements(By.CLASS_NAME, "see_normal")
+                driver.find_elements(By.LINK_TEXT, "abbrechen")[len(construction_orders)-2].click()
         for i in [36, 34]:
-            name = driver.find_element_by_name(str(i))
-            number = driver.find_elements_by_class_name("technik_wrapper")[i - (32 + 2)].text
+            name = driver.find_element(By.NAME, str(i))
+            number = driver.find_elements(By.CLASS_NAME, "technik_wrapper")[i - (32 + 2)].text
             number = int(number.split(" ")[-1].replace(".",""))
             if i == 34:
                 number -= 200000
@@ -168,6 +174,7 @@ def defensive():
                 name.send_keys(Keys.RIGHT ,Keys.BACKSPACE, number, Keys.ENTER)
             else:
                 name.send_keys(Keys.RIGHT ,Keys.BACKSPACE, 1999999999, Keys.ENTER)
+            time.sleep(1)
     except IndexError:
         print("Termination not possible")
 
@@ -187,21 +194,21 @@ def gebaeude_build(planetid,number):
     shwitch_planet(farm_planet(planetid)[0])
     legend = where()
     if 'Bauaufträge' in legend:
-        return driver.find_element_by_id('zaehler_gebaeude1001').text
+        return driver.find_element(By.ID, "zaehler_gebaeude1001").text
     else:
-        gebaeude = driver.find_elements_by_partial_link_text('Ausbauen')
+        gebaeude = driver.find_elements(By.PARTIAL_LINK_TEXT, "Ausbauen")
         if len(gebaeude) > 0:
             gebaeude[number].click()
-            return driver.find_element_by_id('zaehler_gebaeude1001').text
+            return driver.find_element(By.ID, "zaehler_gebaeude1001").text
         return "Ausbau nicht moeglich"
 
 
 def ship_handel(ships, ships_amount, surcharge, iron_build, naquada_build, deuterium_build):
     sidebar_menu(14)
-    driver.find_elements_by_class_name('ebene_2')[2].click()
-    iron = driver.find_element_by_name('biete_eisen')
-    naquada = driver.find_element_by_name('biete_naquada')
-    deuterium = driver.find_element_by_name('biete_deuterium')
+    driver.find_elements(By.CLASS_NAME, "ebene_2")[2].click()
+    iron = driver.find_element(By.NAME, "biete_eisen")
+    naquada = driver.find_element(By.NAME, "biete_naquada")
+    deuterium = driver.find_element(By.NAME, "biete_deuterium")
     iron_resources = iron_build*ships_amount+iron_build*ships_amount*surcharge
     naquada_resources = naquada_build*ships_amount+naquada_build*ships_amount*surcharge
     deuterium_resources = deuterium_build*ships_amount+deuterium_build*ships_amount*surcharge
@@ -213,23 +220,23 @@ def ship_handel(ships, ships_amount, surcharge, iron_build, naquada_build, deute
 
 def resource_hand(offer, resTyp, resTyp2, multi = 1):
     where_to("Handel", 14)
-    driver.find_elements_by_class_name('ebene_2')[2].click()
+    driver.find_elements(By.CLASS_NAME, "ebene_2")[2].click()
     if resTyp == "e":
-        offerRes = driver.find_element_by_name('biete_eisen')
+        offerRes = driver.find_element(By.NAME,"biete_eisen")
     elif resTyp == "n":
-        offerRes = driver.find_element_by_name('biete_naquada')
+        offerRes = driver.find_element(By.NAME, "biete_naquada")
     else:
-        offerRes = driver.find_element_by_name('biete_deuterium')
+        offerRes = driver.find_element(By.NAME, "biete_deuterium")
     offerRes.send_keys(Keys.BACKSPACE, int(offer * multi))
     if resTyp2 == "e":
-        searchRes = driver.find_element_by_name('suche_eisen')
+        searchRes = driver.find_element(By.NAME, "suche_eisen")
     elif resTyp2 == "n":
-        searchRes = driver.find_element_by_name('suche_naquada')
+        searchRes = driver.find_element(By.NAME, "suche_naquada")
     else:
-        searchRes = driver.find_element_by_name('suche_deuterium')
+        searchRes = driver.find_element(By.NAME, "suche_deuterium")
     if resTyp == "e":
         if resTyp2 == "n":
-            resMulti = 0.401
+            resMulti = 0.402
         elif resTyp2 == "d":
             resMulti = 0.681
     if resTyp == "d":
@@ -243,29 +250,30 @@ def resource_hand(offer, resTyp, resTyp2, multi = 1):
         elif resTyp2 == "d":
             resMulti = 1.698
     searchRes.send_keys(Keys.BACKSPACE, int(offer * multi * resMulti))
-    send = driver.find_element_by_name('send')
+    send = driver.find_element(By.NAME, "send")
     send.click()
 
 
 # Navigate in the sidebar menu
 def sidebar_menu(number):
-    driver.find_elements_by_class_name('sidebar_menu')[number].click()
+    driver.find_elements(By.CLASS_NAME, "sidebar_menu")[number].click()
 
 
 # Navigate to Ingame Messages
 def messages():
-    driver.find_elements_by_class_name('MenuBarItemSubmenu')[1].click()
+    driver.find_elements(By.CLASS_NAME, "MenuBarItemSubmenu")[1].click()
 
 
 # Navigate to Ingame Spionage Massages
 def spionage():
     messages()
-    spio = driver.find_elements_by_class_name('ebene_2')[4]
+    spio = driver.find_elements(By.CLASS_NAME, "ebene_2")[4]
     spio.click()
-    mes = driver.find_element_by_id('boxen_class_0')
+    mes = driver.find_element(By.PARTIAL_LINK_TEXT, "Ihr Spionageversuch")
     mes.click()
-    message = driver.find_elements_by_class_name('fieldset_div')[1]
-    spio_message = message.find_element_by_xpath('table/tbody/tr/td').text
+    time.sleep(1)
+    message = driver.find_elements(By.CLASS_NAME, "fieldset_div")[1]
+    spio_message = message.find_element(By.XPATH, "table/tbody/tr/td").text
     return spio_message
 
 
@@ -300,15 +308,15 @@ def spio_string(spio_message):
 def delete_messages(typ):
     messages()
     try:
-        delete = driver.find_elements_by_class_name('ebene_2')[typ]
+        delete = driver.find_elements(By.CLASS_NAME, "ebene_2")[typ]
         delete.click()
         check = ActionChains(driver)
-        check.click(driver.find_element_by_id('schalter'))
+        check.click(driver.find_element(By.ID, "schalter"))
         check.perform()
-        delete = Select(driver.find_element_by_id('aktion'))
+        delete = Select(driver.find_element(By.ID, "aktion"))
         delete.select_by_value('delete')
     except:
-        pass
+        False
 
 
 # Navigate to Universe Map
@@ -320,7 +328,7 @@ def universe():
 # Flight duration in seconds
 def flight_duration():
     try:
-        duration = driver.find_element_by_id('flotte_dauer').text
+        duration = driver.find_element(By.ID, "flotte_dauer").text
         hour = int(duration[:2])*60*60
         minutes = int(duration[3:-3])*60
         seconds = int(duration[6:])
@@ -334,22 +342,22 @@ def flight_duration():
 def fleetcommands(galaxy, system, planet, number, typ, befehl):
     where_to('Flottenbewegungen',8)
     max_fleet()
-    galaxy_pos = driver.find_element_by_id('pos1')
+    galaxy_pos = driver.find_element(By.ID, "pos1")
     galaxy_pos.send_keys(galaxy)
-    system_pos = driver.find_element_by_id('pos2')
+    system_pos = driver.find_element(By.ID, "pos2")
     system_pos.send_keys(system)                                      # 47 = Spionagesonde
-    planet_pos = driver.find_element_by_id('pos3')                    # 24 = Kleiner Transporter
+    planet_pos = driver.find_element(By.ID, "pos3")                   # 24 = Kleiner Transporter
     planet_pos.send_keys(planet)                                      # 25 = Großer Transporter
-    feetType = driver.find_element_by_id('anzahl_' + str(typ))        # 26 = Kleiner Truppentransporter
+    feetType = driver.find_element(By.ID,"anzahl_" + str(typ))        # 26 = Kleiner Truppentransporter
     feetType.send_keys(number)                                        # 27 = Großer Truppentransporter
-    order = Select(driver.find_element_by_id('auftrag'))              # 28 = Kolonieschiff
+    order = Select(driver.find_element(By.ID, "auftrag"))             # 28 = Kolonieschiff
     order.select_by_visible_text('Auftrag wählen')                    # 29 = Todesgleiter
     if befehl == "s":                                                 # 30 = Hatak
         order.select_by_value('spionage')                             # 32 = Flaggschiff
     elif befehl == "a":                                               # 33 = Anubis-Mutterschiff
         order.select_by_value('angriff')                              # 48 = Flotten-Verband
     sleep = flight_duration()
-    send = driver.find_element_by_id('send')
+    send = driver.find_element(By.ID, "send")
     send.click()
     is_bannd = failed()
     if is_bannd != False:
@@ -360,7 +368,7 @@ def fleetcommands(galaxy, system, planet, number, typ, befehl):
 
 def failed():
     try:
-        failed = driver.find_element_by_class_name('failed')
+        failed = driver.find_element(By.CLASS_NAME, "failed")
         if 'Fehler:\nDer Benutzer, den Sie anfliegen wollen ist gebannt!' == failed.text:
             return 'banned'
         elif 'Fehler:\nSie haben nicht genug Schiffe!' == failed.text:
@@ -376,7 +384,7 @@ def failed():
 
 
 def current_fleet():
-    fleet = driver.find_element_by_class_name('liste_head').text
+    fleet = driver.find_element(By.CLASS_NAME, "liste_head").text
     fleet = fleet.split(" ")
     fleet = fleet[1].replace("(","")
     fleet = fleet.replace(")","")
@@ -401,7 +409,7 @@ def auto_farm(score):
     try:
         for planet in liste:
             counter += 1
-            current_planet = driver.find_element_by_class_name('koordinaten').text
+            current_planet = driver.find_element(By.CLASS_NAME, "koordinaten").text
             current_planet = current_planet.replace("]","")
             current_planet = current_planet.replace("[","")
             current_planet = current_planet.split(":")
@@ -419,7 +427,7 @@ def auto_farm(score):
                     if fleet[1] == False:
                         last_and_next_farm(planet[0],planet[1],planet[2],planet[5])
                     elif fleet[1] == 'schiffe':
-                        print('Not enough ships: {}:{}:{}'.format(planet[0],planet[1],planet[2]))
+                        print(f"Not enough ships: {planet[0]}:{planet[1]}:{planet[2]}")
                         not_ships(planet[0],planet[1],planet[2],spio_message)
                 elif spio == 'def':
                     update_status_in_sql(planet[3],'def')
@@ -455,6 +463,7 @@ def auto_build(number, manuell):
     if manuell == 0:
         print(time.strftime("%d.%m.%Y %H:%M:%S"))
 
-
-driver = webdriver.Edge(executable_path=r"edgedriver_win32\msedgedriver.exe")
-start_season("<YOUR PASSWORD IN B64CODE>","<USERNAME>")
+if __name__ == "__main__":
+    os.environ['GH_TOKEN'] = "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"
+    driver = webdriver.Firefox(executable_path=GeckoDriverManager().install())
+    start_season("<YOUR PASSWORD IN B64CODE>","<USERNAME>")

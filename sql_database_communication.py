@@ -10,6 +10,7 @@ import time
 from datetime import date
 from datetime import timedelta
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
 
 
 
@@ -20,7 +21,7 @@ def uni_loop(driver):
     for galaxy in range(73,101):
         for system in range(1,501):
             go_to_universe(driver, galaxy, system)
-            browser = driver.find_elements_by_class_name('liste_list')
+            browser = driver.find_elements(By.CLASS_NAME, "liste_list")
             for i in range(15):
                 planet_list = planet(driver, browser,i*4)
                 if type(planet_list) == list:
@@ -43,7 +44,7 @@ def uni_loop(driver):
                         uni.execute('''INSERT INTO user (user_name, score, allianz) values(?,?,?)''',
                                     (user_liste[0], user_liste[1], user_liste[2]))
                         go_to_universe(driver,galaxy,system)
-                        browser = driver.find_elements_by_class_name('liste_list')
+                        browser = driver.find_elements(By.CLASS_NAME, "liste_list")
                     if len(planet_list[4]) > 2:
                         allianz_liste = [planet_list[4]]
                         allianz_exists_in_sql = uni.execute(''' SELECT allianz_name FROM allianz WHERE allianz_name=?''', allianz_liste)
@@ -53,17 +54,17 @@ def uni_loop(driver):
                             uni.execute('''INSERT INTO allianz (allianz_name, members, allianz_score) values(?,?,?)''',
                                         (allianz_liste[0], allianz_liste[1], allianz_liste[2]))
                             go_to_universe(driver,galaxy,system)
-                            browser = driver.find_elements_by_class_name('liste_list')
+                            browser = driver.find_elements(By.CLASS_NAME, "liste_list")
         con.commit()
     con.commit()
     con.close()
 
 
 def go_to_universe(driver,galaxy,system):
-    g = driver.find_element_by_id('pos1')
+    g = driver.find_element(By.ID, "pos1")
     g.send_keys(3*Keys.BACKSPACE)
     g.send_keys(galaxy)
-    s = driver.find_element_by_id('pos2')
+    s = driver.find_element(By.ID, "pos2")
     s.send_keys(3*Keys.BACKSPACE)
     s.send_keys(system)
     s.send_keys(Keys.ENTER)
@@ -85,11 +86,11 @@ def planet(driver, browser, i):
 def user_name(driver, browser, i):
     browser[i + 2].click()
     user_liste = []
-    user = driver.find_elements_by_class_name('fieldset_ablinks')
+    user = driver.find_elements(By.CLASS_NAME, "fieldset_ablinks")
     user_liste.append(user[0].text)
     user_liste.append(int(user[1].text.replace('.','')))
     user_liste.append(user[4].text)
-    driver.find_elements_by_class_name('sidebar_menu')[11].click()
+    driver.find_elements(By.CLASS_NAME, "sidebar_menu")[11].click()
     return user_liste
 
 
@@ -97,11 +98,11 @@ def user_name(driver, browser, i):
 def allianz(driver, browser, i):
     browser[i + 3].click()
     alli_liste = []
-    alli = driver.find_elements_by_class_name('fieldset_ablinks')
+    alli = driver.find_elements(By.CLASS_NAME, "fieldset_ablinks")
     alli_liste.append(alli[2].text)
     alli_liste.append(alli[6].text)
     alli_liste.append(int(alli[8].text.replace('.','')))
-    driver.find_elements_by_class_name('sidebar_menu')[11].click()
+    driver.find_elements(By.CLASS_NAME, "sidebar_menu")[11].click()
     return alli_liste
 
 
